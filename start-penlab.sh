@@ -16,6 +16,17 @@ get_local_ip() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # MacOS
         ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "127.0.0.1"
+    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "$WSLENV" ]]; then
+        # Windows (Git Bash/Cygwin) or WSL
+        if command -v ipconfig.exe &> /dev/null; then
+            # Windows or WSL
+            ipconfig.exe 2>/dev/null | grep -i "IPv4" | grep -oP '\d+\.\d+\.\d+\.\d+' | grep -v '127.0.0.1' | head -n1 || echo "127.0.0.1"
+        elif command -v hostname &> /dev/null; then
+            # Fallback to hostname
+            hostname -I 2>/dev/null | awk '{print $1}' || echo "127.0.0.1"
+        else
+            echo "127.0.0.1"
+        fi
     else
         # Linux
         ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n1 || echo "127.0.0.1"

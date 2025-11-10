@@ -43,7 +43,8 @@ RUN sed -i 's#/var/www/html#/var/www/html/bWAPP#g' /etc/apache2/sites-available/
 
 # Copy and set up entrypoint script
 COPY bwapp-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/bwapp-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/bwapp-entrypoint.sh && \
+    chmod +x /usr/local/bin/bwapp-entrypoint.sh
 
 EXPOSE 80
 
