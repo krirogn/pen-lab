@@ -105,4 +105,4 @@ respective endpoints.
 
 
 ## 🚗 Roadmap
-- [ ] Add Windows support
+- [x] Add Windows support
