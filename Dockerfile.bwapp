@@ -1,51 +1,50 @@
 FROM php:7.4-apache
 
 # Install dependencies
+#
+# mariadb-client is used in the bwapp-entrypoint.sh
 RUN apt-get update && apt-get install -y \
+    iputils-ping \
+    dnsutils \
     mariadb-client \
     wget \
-    unzip \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    && rm -rf /var/lib/apt/lists/*
+    unzip
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd mysqli pdo pdo_mysql
+RUN docker-php-ext-install mysqli pdo pdo_mysql
 
 # Download and extract bWAPP
 WORKDIR /tmp
-RUN wget https://sourceforge.net/projects/bwapp/files/bWAPP_latest.zip/download -O bwapp.zip && \
-    unzip bwapp.zip && \
-    mv bWAPP /var/www/html/ && \
-    rm bwapp.zip
+RUN wget https://sourceforge.net/projects/bwapp/files/bWAPP_latest.zip/download -O bwapp.zip
+RUN unzip bwapp.zip -d bwapp
+RUN mv bwapp/bWAPP /var/www/html/
+RUN rm bwapp.zip
+RUN rm -rf bwapp
 
 # Set proper permissions
 WORKDIR /var/www/html/bWAPP
-RUN chown -R www-data:www-data /var/www/html/bWAPP && \
-    chmod -R 755 /var/www/html/bWAPP && \
-    chmod 777 /var/www/html/bWAPP/passwords && \
-    chmod 777 /var/www/html/bWAPP/images && \
-    chmod 777 /var/www/html/bWAPP/documents
+RUN chown -R www-data:www-data /var/www/html/bWAPP
+RUN chmod 777 /var/www/html/bWAPP/passwords/
+RUN chmod 777 /var/www/html/bWAPP/images/
+RUN chmod 777 /var/www/html/bWAPP/documents/
+RUN chmod 777 /var/www/html/bWAPP/logs/
 
 # Configure bWAPP database settings
-RUN sed -i 's/localhost/bwa-db/g' /var/www/html/bWAPP/admin/settings.php && \
-    sed -i "s/\$db_username = \"root\";/\$db_username = \"bwapp\";/" /var/www/html/bWAPP/admin/settings.php && \
-    sed -i "s/\$db_password = \"\";/\$db_password = \"bug\";/" /var/www/html/bWAPP/admin/settings.php
+# Update database host
+RUN sed -i 's/localhost/bwa-db/g' /var/www/html/bWAPP/admin/settings.php
+# Remove password
+RUN sed -i 's/\$db_password = "bug"/\$db_password = ""/' /var/www/html/bWAPP/admin/settings.php
 
 # Configure Apache
-RUN a2enmod rewrite && \
-    echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
-# Update Apache document root to point to bWAPP
-RUN sed -i 's#/var/www/html#/var/www/html/bWAPP#g' /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Copy and set up entrypoint script
 COPY bwapp-entrypoint.sh /usr/local/bin/
-RUN sed -i 's/\r$//' /usr/local/bin/bwapp-entrypoint.sh && \
-    chmod +x /usr/local/bin/bwapp-entrypoint.sh
+COPY bWAPP.sql /usr/local/bin/
+RUN chmod +x /usr/local/bin/bwapp-entrypoint.sh
 
+# Expose port 80 for Nginx
 EXPOSE 80
 
+# Start the container by checking 
 ENTRYPOINT ["/usr/local/bin/bwapp-entrypoint.sh"]

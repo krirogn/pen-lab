@@ -35,7 +35,7 @@ services:
       - MYSQL_USER=dvwa
       - MYSQL_PASSWORD=p@ssw0rd
     volumes:
-      - ./data/dvwa-db:/var/lib/mysql
+      - dvwa-data:/var/lib/mysql
     restart: unless-stopped
 
   # Buggy Web App
@@ -46,19 +46,16 @@ services:
     restart: unless-stopped
     depends_on:
       - bwa-db
-    environment:
-      - DB_HOST=bwa-db
-      - DB_NAME=bwapp
-      - DB_USER=bwapp
-      - DB_PASS=bug
 
   bwa-db:
     image: mariadb:10
     environment:
-      - MYSQL_ROOT_PASSWORD=bug
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
       - MYSQL_DATABASE=bWAPP
-      - MYSQL_USER=bwapp
-      - MYSQL_PASSWORD=bug
     volumes:
-      - ./data/bwa-db:/var/lib/mysql
+      - bwa-data:/var/lib/mysql
     restart: unless-stopped
+
+volumes:
+  dvwa-data:
+  bwa-data:

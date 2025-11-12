@@ -5,6 +5,8 @@ set -e
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Get the directory where the script is located
@@ -33,10 +35,59 @@ get_local_ip() {
     fi
 }
 
+# Function to calculate file hash (cross-platform)
+calculate_hash() {
+    if command -v md5sum &> /dev/null; then
+        # Linux
+        cat "$@" 2>/dev/null | md5sum | awk '{print $1}'
+    elif command -v md5 &> /dev/null; then
+        # macOS
+        cat "$@" 2>/dev/null | md5
+    elif command -v sha256sum &> /dev/null; then
+        # Fallback to sha256 (available on most systems including Git Bash)
+        cat "$@" 2>/dev/null | sha256sum | awk '{print $1}'
+    else
+        # If no hash command available, use file modification times
+        stat -c %Y "$@" 2>/dev/null || stat -f %m "$@" 2>/dev/null || echo "unknown"
+    fi
+}
+
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
     echo -e "${RED}Error: Docker is not running. Start Docker before running the script.${NC}"
     exit 1
+fi
+
+# Check if Dockerfile has changed and rebuild if needed
+DOCKERFILE="Dockerfile.bwapp"
+ENTRYPOINT="bwapp-entrypoint.sh"
+BUILD_MARKER=".last_build_hash"
+NEEDS_BUILD=false
+
+if [ -f "$DOCKERFILE" ] && [ -f "$ENTRYPOINT" ]; then
+    # Calculate hash of Dockerfile and entrypoint script
+    CURRENT_HASH=$(calculate_hash "$DOCKERFILE" "$ENTRYPOINT")
+    
+    # Check if hash has changed
+    if [ -f "$BUILD_MARKER" ]; then
+        LAST_HASH=$(cat "$BUILD_MARKER")
+        if [ "$CURRENT_HASH" != "$LAST_HASH" ]; then
+            NEEDS_BUILD=true
+        fi
+    else
+        NEEDS_BUILD=true
+    fi
+    
+    # Build if needed
+    if [ "$NEEDS_BUILD" = true ]; then
+        echo -e "${YELLOW}Dockerfile or entrypoint has changed. Rebuilding bWAPP image...${NC}"
+        docker compose build --no-cache bwa
+        # Save the new hash
+        echo "$CURRENT_HASH" > "$BUILD_MARKER"
+        echo -e "${GREEN}Build complete!${NC}"
+    else
+        echo -e "${GREEN}bWAPP image is up to date.${NC}"
+    fi
 fi
 
 # Start Docker Compose
@@ -76,20 +127,19 @@ echo ""
 echo "  - Buggy Web Application (bWAPP):"
 echo "    http://$LOCAL_IP/bWAPP"
 echo "    http://localhost/bWAPP"
-echo "    (Login: bee / bug)"
 echo ""
 echo "Service Status:"
-echo "  - Juice Shop: ${JUICE_STATUS}"
-echo "  - DVWA: ${DVWA_STATUS}"
-echo "  - bWAPP: ${BWA_STATUS}"
+echo -e "  - Juice Shop: ${CYAN}${JUICE_STATUS}${NC}"
+echo -e "  - DVWA:       ${CYAN}${DVWA_STATUS}${NC}"
+echo -e "  - bWAPP:      ${CYAN}${BWA_STATUS}${NC}"
 echo ""
 echo "####################################################"
 echo ""
 echo "Commands:"
-echo "  View logs:    docker compose logs -f"
-# echo "  Stop lab:     docker compose stop"
-echo "  Restart lab:  docker compose restart"
-echo "  Shutdown:     docker compose down"
+echo "  View logs:                    docker compose logs -f"
+echo "  Restart lab:                  docker compose restart"
+echo "  Shutdown:                     docker compose down"
+echo "  Shutdown and reset database:  docker compose down -v"
 echo ""
 
 # Optional: Follow logs
