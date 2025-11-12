@@ -8,6 +8,16 @@
     portability and support for multiple architectures like x86_86 and arm64.</p>
 </div>
 
+> [!CAUTION]  
+> This project allows users to run the PEN Lab on architectures other than 86_64, but
+> students still need an x86_86 compatible computer to do the UC2PEN10 course. The final
+> assessment will incude a VM that can only be run on an AMD/Intel computer, so don't
+> think that this repository will allow you to complete the course on anything different.
+>
+> This project is only meant as a convenience script that lets you do *some* tasks on
+> something like an Apple M1 computer, but an x86_64 computer is still needed for the
+> course! The course staff has made it clear that an Intel/AMD computer is a necessity.
+
 ## 🚀 How to run
 PEN Lab is nothing more than a docker compsose setup that runs the same web servers
 as __Pen-Target-202526-v1.0__, but in a container instead of in a VM. If you're already
