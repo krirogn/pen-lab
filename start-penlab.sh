@@ -13,6 +13,10 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
+# Update the repository
+echo -e "${GREEN}Updating the repository from git${NC}"
+git pull
+
 # Function to get local IP address
 get_local_ip() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -108,7 +112,7 @@ LOCAL_IP=$(get_local_ip)
 # Clear screen and display banner
 clear
 
-echo "####################################################"
+echo "######################################################"
 echo "Welcome to Penetration Testing Lab 2025/26"
 echo "Running on $(uname -s) $(uname -m)"
 echo ""
@@ -133,7 +137,7 @@ echo -e "  - Juice Shop: ${CYAN}${JUICE_STATUS}${NC}"
 echo -e "  - DVWA:       ${CYAN}${DVWA_STATUS}${NC}"
 echo -e "  - bWAPP:      ${CYAN}${BWA_STATUS}${NC}"
 echo ""
-echo "####################################################"
+echo "######################################################"
 echo ""
 echo "Commands:"
 echo "  View logs:                    docker compose logs -f"
