@@ -82,7 +82,7 @@ Now you can open and see all three pages running in your browser🎉!
 ## 📄 Techical Details
 These are the technical details for those interested.
 
-I've used a docker compose script to run the web servers whilest routing the web apps
+I've used a docker compose script to run the web servers whilst routing the web apps
 to the same endpoints as there were in the original VM, with Juice Shop at
 `http://IP:3000`, DVWA at `http://IP/DVWA` and bWAPP at `http://IP/bWAPP`.
 
@@ -105,11 +105,10 @@ x86_86 and arm64. It then goes through the process to build and set up Buggy Web
 
 The dockerfile configures Buggy Web App to use the right database and sets the
 permissions correctly, but I've also added an extra step that automatically initializes
-the database, because the manual steps of going to the `/install.php` endpoint and
-initializing the database there doesn't work correctly. I do the automatic
-database initialization in the `bwapp-entrypoint.sh` script by running the sql commands
-in `bWAPP.sql`. The `bWAPP.sql` file just recreates the database from the backup of a
-Buggy Web App instance that was set up correctly.
+the database so the user doesn't have to go through the usual manual steps of going to
+the `/install.php` endpoint and initialize the database there. I do the automatic
+database initialization in the `bwapp-entrypoint.sh` script.
+
 
 ### 📡 Nginx
 I just made a standard `nginx.conf` config file that redirects dvwa and bwapp to their

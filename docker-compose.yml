@@ -50,8 +50,7 @@ services:
   bwa-db:
     image: mariadb:10
     environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-      - MYSQL_DATABASE=bWAPP
+      - MYSQL_ROOT_PASSWORD=bug
     volumes:
       - bwa-data:/var/lib/mysql
     restart: unless-stopped

@@ -31,8 +31,6 @@ RUN chmod 777 /var/www/html/bWAPP/logs/
 # Configure bWAPP database settings
 # Update database host
 RUN sed -i 's/localhost/bwa-db/g' /var/www/html/bWAPP/admin/settings.php
-# Remove password
-RUN sed -i 's/\$db_password = "bug"/\$db_password = ""/' /var/www/html/bWAPP/admin/settings.php
 
 # Configure Apache
 RUN a2enmod rewrite
@@ -40,7 +38,6 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Copy and set up entrypoint script
 COPY bwapp-entrypoint.sh /usr/local/bin/
-COPY bWAPP.sql /usr/local/bin/
 RUN chmod +x /usr/local/bin/bwapp-entrypoint.sh
 
 # Expose port 80 for Nginx
